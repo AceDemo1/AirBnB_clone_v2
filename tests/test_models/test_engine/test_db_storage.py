@@ -1,85 +1,31 @@
 #!/usr/bin/python3
-"""test for file storage"""
+"""
+This module contains unit tests for tha database storage.
+"""
 import unittest
-import pep8
-import json
-import os
-from os import getenv
-import MySQLdb
-from models.base_model import BaseModel, Base
-from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
+import pycodestyle
 from models.engine.db_storage import DBStorage
 
 
-@unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
 class TestDBStorage(unittest.TestCase):
-    '''this will test the DBStorage'''
+    """This class provides tests for the database storage"""
 
-    @classmethod
-    def setUpClass(self):
-        """set up for test"""
-        self.User = getenv("HBNB_MYSQL_USER")
-        self.Passwd = getenv("HBNB_MYSQL_PWD")
-        self.Db = getenv("HBNB_MYSQL_DB")
-        self.Host = getenv("HBNB_MYSQL_HOST")
-        self.db = MySQLdb.connect(host=self.Host, user=self.User,
-                                  passwd=self.Passwd, db=self.Db,
-                                  charset="utf8")
-        self.query = self.db.cursor()
-        self.storage = DBStorage()
-        self.storage.reload()
+    def test_conformance(self):
+        """Test that we conform to pycodestyle."""
+        style = pycodestyle.StyleGuide(quiet=True)
+        result = style.check_files(['models/engine/db_storage.py'])
+        self.assertEqual(result.total_errors, 0,
+                         "Found code style errors (and warnings).")
 
-    @classmethod
-    def teardown(self):
-        """at the end of the test this will tear it down"""
-        self.query.close()
-        self.db.close()
-
-    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
-    def test_pep8_DBStorage(self):
-        """Test Pep8"""
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/engine/db_storage.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
-
-    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
-    def test_read_tables(self):
-        """existing tables"""
-        self.query.execute("SHOW TABLES")
-        salida = self.query.fetchall()
-        self.assertEqual(len(salida), 7)
-
-    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
-    def test_no_element_user(self):
-        """no elem in users"""
-        self.query.execute("SELECT * FROM users")
-        salida = self.query.fetchall()
-        self.assertEqual(len(salida), 0)
-
-    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
-    def test_no_element_cities(self):
-        """no elem in cities"""
-        self.query.execute("SELECT * FROM cities")
-        salida = self.query.fetchall()
-        self.assertEqual(len(salida), 0)
-
-    @unittest.skipIf(getenv("HBNB_TYPE_STORAGE") != 'db', 'NO DB')
-    def test_add(self):
-        """Test same size between storage() and existing db"""
-        self.query.execute("SELECT * FROM states")
-        salida = self.query.fetchall()
-        self.assertEqual(len(salida), 0)
-        state = State(name="LUISILLO")
-        state.save()
-        self.db.autocommit(True)
-        self.query.execute("SELECT * FROM states")
-        salida = self.query.fetchall()
-        self.assertEqual(len(salida), 1)
+    def test_docstrings(self):
+        """Check for docstrings."""
+        self.assertEqual(len(DBStorage.__doc__), 59)
+        self.assertIsNotNone(DBStorage.__init__.__doc__)
+        self.assertGreater(len(DBStorage.all.__doc__), 0)
+        self.assertIsNotNone(DBStorage.new.__doc__)
+        self.assertLess(len(DBStorage.save.__doc__), 100)
+        self.assertIsNotNone(DBStorage.delete.__doc__)
+        self.assertEqual(len(DBStorage.reload.__doc__), 51)
 
 
 if __name__ == "__main__":
